@@ -44,10 +44,6 @@ package eu.powdermonkey.composure
 				dynamicClass.addMethodBody(property.setMethod, generateMethod(dynamicClass, property.setMethod, null, false, property.name, MethodType.PROPERTY_SET));
 			}
 			
-			var createInstanceMethodBody : DynamicMethod = generateCreateInstanceMethod(dynamicClass);
-			dynamicClass.addMethod(createInstanceMethodBody.method);
-			dynamicClass.addMethodBody(createInstanceMethodBody.method, createInstanceMethodBody);
-			
 			return dynamicClass;
 		}
 		
@@ -159,7 +155,8 @@ package eu.powdermonkey.composure
 		{
 			var baseCtor : MethodInfo = dynamicClass.baseType.constructor;
 			var argCount : uint = baseCtor.parameters.length;
-			var namespaze:BCNamespace = new BCNamespace(dynamicClass.packageName, NamespaceKind.PACKAGE_NAMESPACE)
+//			var namespaze:BCNamespace = new BCNamespace(dynamicClass.packageName, NamespaceKind.PACKAGE_NAMESPACE)
+			var namespaze:BCNamespace = new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE)
 			
 			with (Instructions)
 			{
@@ -188,8 +185,10 @@ package eu.powdermonkey.composure
 					[ReturnVoid]
 				);
 				
+				var argumentBytes:int = properties.length * 5
+				
 //				return new DynamicMethod(dynamicClass.constructor, 6 + argCount, 3 + argCount, 4, 5, instructions);
-				return new DynamicMethod(dynamicClass.constructor, 6 + argCount, 3 + argCount, 4, 5, instructions);
+				return new DynamicMethod(dynamicClass.constructor, 6 + argumentBytes, 3 + argumentBytes, 4, 5, instructions);
 			}
 		}
 		
@@ -255,86 +254,5 @@ package eu.powdermonkey.composure
 				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);
 			}
 		}
-		
-		private function generateSuperPropertyGetterMethod(property : PropertyInfo) : DynamicMethod
-		{
-			var method : MethodInfo = new MethodInfo(property.owner, "get_" + property.name + "_internal", null, MemberVisibility.PRIVATE, false, false, Type.getType(Object), []); 
-			
-			with(Instructions)
-			{
-				var instructions : Array = [
-					[GetLocal_0],
-					[PushScope],
-					
-					[GetLocal_0],
-					[GetSuper, property.qname],
-					
-					[GetLex, property.type.qname],
-					[AsTypeLate],
-					
-					[ReturnValue]
-				];
-				
-				return new DynamicMethod(method, 3, 2, 4, 5, instructions);
-			}
-		}
-		
-		private function generateSuperPropertySetterMethod(property : PropertyInfo) : DynamicMethod
-		{
-			var valueParam : ParameterInfo = new ParameterInfo("value", property.type, false);
-			
-			var method : MethodInfo = new MethodInfo(property.owner, "set_" + property.name + "_internal", null, MemberVisibility.PRIVATE, false, false, Type.getType(Object), [valueParam]); 
-			
-			with(Instructions)
-			{
-				var instructions : Array = [
-					[GetLocal_0],
-					[PushScope],
-					
-					[GetLocal_0],
-					[GetLocal_1],
-					[SetSuper, property.qname],
-					
-					[ReturnVoid]
-				];
-				
-				return new DynamicMethod(method, 4, 3, 4, 5, instructions);
-			}
-		}
-		
-		private function generateCreateInstanceMethod(dynamicClass : DynamicClass) : DynamicMethod
-		{
-			var argCount : int = dynamicClass.constructor.parameters.length;
-			
-			var method : MethodInfo = new MethodInfo(dynamicClass, CREATE_METHOD, null, MemberVisibility.PUBLIC, true, false, dynamicClass, dynamicClass.constructor.parameters); 
-			
-			with(Instructions)
-			{
-				var instructions : Array = [
-					[GetLocal_0],
-					[PushScope],
-					
-					[GetLex, dynamicClass.qname]
-				];
-					
-				for (var i : int = 0; i<argCount; i++)
-				{
-					instructions.push(
-						[GetLocal, i+1]
-					);
-				}
-				
-				instructions.push(
-					[Construct, dynamicClass.constructor.parameters.length],
-					
-					/* [GetLex, dynamicClass.qname],
-					[AsTypeLate], */
-					
-					[ReturnValue]
-				);
-				
-				return new DynamicMethod(method, 2 + argCount, 2 + argCount, 3, 4, instructions);
-			}
-		}
-	}
+	}		
 }
