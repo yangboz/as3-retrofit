@@ -35,7 +35,7 @@ package eu.powdermonkey.composure
 		{
 		}
 		
-		public function mush(clazz:Class, constructorArguments:Array = null):*
+		public function mush(clazz:Class, ... constructorArguments):*
 		{
 			constructorArguments = constructorArguments || []
 			var interceptor:IInterceptor = new MixinInterceptor()
@@ -155,9 +155,7 @@ package eu.powdermonkey.composure
 				
 				generatedNames[cls] = qname;
 
-				var dynamicClass:DynamicClass = (type.isInterface)
-					? mixinGenerator.createProxyFromInterface(qname, [type])
-					: mixinGenerator.createProxyFromClass(qname, type, []);
+				var dynamicClass:DynamicClass = mixinGenerator.createProxyFromInterface(qname, [type])
 
 				layoutBuilder.registerType(dynamicClass);
 			}

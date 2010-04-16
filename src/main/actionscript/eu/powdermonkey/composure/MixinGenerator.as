@@ -25,13 +25,13 @@ package eu.powdermonkey.composure
 			var method : MethodInfo;
 			var property : PropertyInfo;
 			
-			dynamicClass.constructor = createConstructor(dynamicClass);
+			dynamicClass.constructor = createConstructor(dynamicClass, interfaces[0]);
 			
-			dynamicClass.addSlot(new FieldInfo(dynamicClass, PROXY_FIELD_NAME, qname.toString() + "/" + PROXY_FIELD_NAME, MemberVisibility.PUBLIC, false, Type.getType(IProxyListener)));
+//			dynamicClass.addSlot(new FieldInfo(dynamicClass, PROXY_FIELD_NAME, qname.toString() + "/" + PROXY_FIELD_NAME, MemberVisibility.PUBLIC, false, Type.getType(IProxyListener)));
 			
 			dynamicClass.addMethodBody(dynamicClass.scriptInitialiser, generateScriptInitialier(dynamicClass));
 			dynamicClass.addMethodBody(dynamicClass.staticInitialiser, generateStaticInitialiser(dynamicClass));
-			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass));
+			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, interfaces[0]));
 			
 			for each(method in dynamicClass.getMethods())
 			{
@@ -42,77 +42,6 @@ package eu.powdermonkey.composure
 			{
 				dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, null, false, property.name, MethodType.PROPERTY_GET));
 				dynamicClass.addMethodBody(property.setMethod, generateMethod(dynamicClass, property.setMethod, null, false, property.name, MethodType.PROPERTY_SET));
-			}
-			
-			var createInstanceMethodBody : DynamicMethod = generateCreateInstanceMethod(dynamicClass);
-			dynamicClass.addMethod(createInstanceMethodBody.method);
-			dynamicClass.addMethodBody(createInstanceMethodBody.method, createInstanceMethodBody);
-			
-			return dynamicClass;
-		}
-		
-		public function createProxyFromClass(qname : QualifiedName, superClass : Type, interfaces : Array) : DynamicClass
-		{
-			var dynamicClass : DynamicClass = new DynamicClass(qname, superClass, interfaces);
-			
-			var method : MethodInfo;
-			var property : PropertyInfo;
-			
-			addSuperClassMembers(dynamicClass);
-			
-			dynamicClass.constructor = createConstructor(dynamicClass);
-			
-			dynamicClass.addSlot(new FieldInfo(dynamicClass, PROXY_FIELD_NAME, qname.toString() + "/" + PROXY_FIELD_NAME, MemberVisibility.PUBLIC, false, Type.getType(IProxyListener)));
-			
-			dynamicClass.addMethodBody(dynamicClass.scriptInitialiser, generateScriptInitialier(dynamicClass));
-			dynamicClass.addMethodBody(dynamicClass.staticInitialiser, generateStaticInitialiser(dynamicClass));
-			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass));
-			
-			for each(method in dynamicClass.getMethods())
-			{
-				var baseMethod : MethodInfo = (method.isStatic)
-					? null 
-					: superClass.getMethod(method.name, true);
-				
-				dynamicClass.addMethodBody(method, generateMethod(dynamicClass, method, baseMethod, false, method.name, MethodType.METHOD));
-			}
-			
-			for each(property in dynamicClass.getProperties())
-			{
-				var baseProperty : PropertyInfo = (property.isStatic)
-					? null
-					: superClass.getProperty(property.name, true);
-				
-				var baseGetDynamicMethod : DynamicMethod = null, 
-					baseSetDynamicMethod : DynamicMethod = null;
-				
-				var baseGetMethod : MethodInfo = null,
-					baseSetMethod : MethodInfo = null;
-				
-				if (baseProperty != null)
-				{
-					if (baseProperty.canRead)
-					{
-						baseGetDynamicMethod = generateSuperPropertyGetterMethod(property);
-						baseGetMethod = baseGetDynamicMethod.method;
-						
-						dynamicClass.addMethod(baseGetDynamicMethod.method);
-						dynamicClass.addMethodBody(baseGetDynamicMethod.method, baseGetDynamicMethod);
-						
-						dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, baseGetMethod, true, property.name, MethodType.PROPERTY_GET));
-					}
-					
-					if (baseProperty.canWrite)
-					{
-						baseSetDynamicMethod = generateSuperPropertySetterMethod(property);
-						baseSetMethod = baseSetDynamicMethod.method; 
-						
-						dynamicClass.addMethod(baseSetDynamicMethod.method);
-						dynamicClass.addMethodBody(baseSetDynamicMethod.method, baseSetDynamicMethod);
-						
-						dynamicClass.addMethodBody(property.setMethod, generateMethod(dynamicClass, property.setMethod, baseSetMethod, true, property.name, MethodType.PROPERTY_SET));
-					}
-				}
 			}
 			
 			var createInstanceMethodBody : DynamicMethod = generateCreateInstanceMethod(dynamicClass);
@@ -154,47 +83,21 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		private function addSuperClassMembers(dynamicClass : DynamicClass) : void
-		{
-			var superClass : Type = dynamicClass.baseType;
-			var objectType : Type = Type.getType(Object);
-			
-			while(superClass != objectType)
-			{
-				for each(var method : MethodInfo in superClass.getMethods(false, true))
-				{
-					if (method.qname.ns.name == "")
-					{					
-						if (dynamicClass.getMethod(method.name, false) == null)
-						{
-							// TODO: IsFinal?
-							dynamicClass.addMethod(new MethodInfo(dynamicClass, method.name, null, method.visibility, method.isStatic, true, method.returnType, method.parameters));
-						}
-					}
-				}
-				
-				for each(var property : PropertyInfo in superClass.getProperties(false, true))
-				{
-					if (property.qname.ns.name == "")
-					{
-						if (dynamicClass.getProperty(property.name, false) == null)
-						{
-							// TODO: IsFinal?
-							dynamicClass.addProperty(new PropertyInfo(dynamicClass, property.name, null, property.visibility, property.isStatic, true, property.type, property.canRead, property.canWrite));
-						}
-					}
-				}
-				
-				superClass = superClass.baseType;
-			}
-		}
-		
-		private function createConstructor(dynamicClass : DynamicClass) : MethodInfo
+		private function createConstructor(dynamicClass:DynamicClass, interfaseType:Type) : MethodInfo
 		{
 			var baseCtor : MethodInfo = dynamicClass.baseType.constructor;
 			
 			var params : Array = new Array().concat(baseCtor.parameters);
 //			params.unshift(new ParameterInfo("_proxy", Type.getType(IProxyListener), false));
+			
+			var properties:Array = interfaseType.getProperties()
+			var propertyInfo:PropertyInfo
+			
+			for (var i:uint=0; i<properties.length; i++) 
+			{
+				propertyInfo = properties[i]
+				params.push(new ParameterInfo(propertyInfo.name, propertyInfo.type, false))
+			}
 			
 			//return new MethodInfo(dynamicClass, dynamicClass.name, null, MemberVisibility.PUBLIC, false, 
 			return new MethodInfo(dynamicClass, "ctor", null, MemberVisibility.PUBLIC, false, false, 
@@ -252,63 +155,40 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		private function generateInitialiser(dynamicClass : DynamicClass) : DynamicMethod
+		private function generateInitialiser(dynamicClass:DynamicClass, interfaseType:Type) : DynamicMethod
 		{
 			var baseCtor : MethodInfo = dynamicClass.baseType.constructor;
-				
 			var argCount : uint = baseCtor.parameters.length;
-			
-			var proxyField : FieldInfo = dynamicClass.getField(PROXY_FIELD_NAME);
+			var namespaze:BCNamespace = new BCNamespace(dynamicClass.packageName, NamespaceKind.PACKAGE_NAMESPACE)
 			
 			with (Instructions)
 			{
 				var instructions : Array = [
 					[GetLocal_0],
 					[PushScope],
-					
-					
-					/* [ReturnVoid]]; */
-					
-//					[FindProperty, proxyField.qname],
-//					[GetLocal_1], // proxy argument (always first arg)
-//					[InitProperty, proxyField.qname],
-					
 					// begin construct super
-					[GetLocal_0] // 'this'
+					[GetLocal_0], // 'this'
+					[ConstructSuper, argCount]
 				];
 				
-				for (var i:uint=0; i<argCount; i++) 
+				var properties:Array = interfaseType.getProperties()
+				var propertyInfo:PropertyInfo
+				var qname:QualifiedName
+				
+				for (var i:uint=0; i<properties.length; i++) 
 				{
-					instructions.push([GetLocal, i+2]);
-					
-					/* if (ParameterInfo(baseCtor.parameters[i]).optional)
-					{
-						instructions.push([PushUndefined]);
-						instructions.push([IfNotEquals, 2]);
-						instructions.push([ConstructSuper, argCount]);
-					} */
+					propertyInfo = properties[i]
+					qname = new QualifiedName(namespaze, '_' +propertyInfo.name) 
+					instructions.push([FindProperty, qname])
+					instructions.push([GetLocal, i+1]);
+					instructions.push([InitProperty, qname])
 				}
 				
 				instructions.push(
-					// Optionals?
-					//[PushUndefined]
-				
-					[ConstructSuper, argCount],
-					// end construct super
-				
-					// call __proxy__.methodExecuted(this, CONSTRUCTOR, className, {arguments})
-//					[GetLocal_1],
-//					[GetLocal_0],
-//					[PushByte, MethodType.CONSTRUCTOR],
-//					[PushString, dynamicClass.name],
-//					[GetLocal, argCount + 2], // 'arguments'
-//					[PushNull],
-//					[CallPropVoid, proxyListenerType.getMethod("methodExecuted").qname, 5],
-					
-					
 					[ReturnVoid]
 				);
 				
+//				return new DynamicMethod(dynamicClass.constructor, 6 + argCount, 3 + argCount, 4, 5, instructions);
 				return new DynamicMethod(dynamicClass.constructor, 6 + argCount, 3 + argCount, 4, 5, instructions);
 			}
 		}
@@ -316,7 +196,7 @@ package eu.powdermonkey.composure
 		private function generateMethod(dynamicClass : DynamicClass, method : MethodInfo, baseMethod : MethodInfo, baseIsDelegate : Boolean, name : String, methodType : uint) : DynamicMethod
 		{
 			var argCount : uint = method.parameters.length;
-			var proxyField : FieldInfo = dynamicClass.getField(PROXY_FIELD_NAME);
+//			var proxyField : FieldInfo = dynamicClass.getField(PROXY_FIELD_NAME);
 
 			with (Instructions)
 			{
@@ -324,11 +204,11 @@ package eu.powdermonkey.composure
 					[GetLocal_0],
 					[PushScope],
 					
-					[GetLex, proxyField.qname],
-					[GetLocal_0],
-					[PushByte, methodType],
-					[PushString, name],
-					[GetLocal, argCount + 1], // 'arguments'					
+//					[GetLex, proxyField.qname],
+//					[GetLocal_0],
+//					[PushByte, methodType],
+//					[PushString, name],
+//					[GetLocal, argCount + 1], // 'arguments'					
 				];
 				
 				// TODO: IsFinal?
@@ -456,7 +336,5 @@ package eu.powdermonkey.composure
 				return new DynamicMethod(method, 2 + argCount, 2 + argCount, 3, 4, instructions);
 			}
 		}
-		
-		private static const PROXY_FIELD_NAME : String = "__proxy__";
 	}
 }

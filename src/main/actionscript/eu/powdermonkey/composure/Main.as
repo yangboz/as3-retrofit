@@ -26,7 +26,7 @@ package eu.powdermonkey.composure
 		
 		private function testMixin(mixinFactory:MixinFactory):void
 		{
-			var person:Person = mixinFactory.mush(Person);
+			var person:Person = mixinFactory.mush(Person, 'brian', '0');
 			var type:XML = describeType(person)
 			trace(type)
 			
