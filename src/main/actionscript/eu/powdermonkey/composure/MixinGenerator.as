@@ -192,18 +192,20 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		private function generateMethod(dynamicClass : DynamicClass, method : MethodInfo, baseMethod : MethodInfo, baseIsDelegate : Boolean, name : String, methodType : uint) : DynamicMethod
+		private function generateMethod(dynamicClass:DynamicClass, method : MethodInfo, baseMethod : MethodInfo, baseIsDelegate : Boolean, name : String, methodType : uint) : DynamicMethod
 		{
 			var argCount : uint = method.parameters.length;
 //			var proxyField : FieldInfo = dynamicClass.getField(PROXY_FIELD_NAME);
-
+			
+			
+			var name:String = '_' + method.fullName.match(/(\w+)\/\w+$/)[1]
+			
 			with (Instructions)
 			{
 				var instructions : Array = [
 					[GetLocal_0],
 					[PushScope],
-					
-//					[GetLex, proxyField.qname],
+					[GetLex, new QualifiedName(new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), name)],
 //					[GetLocal_0],
 //					[PushByte, methodType],
 //					[PushString, name],
@@ -227,12 +229,12 @@ package eu.powdermonkey.composure
 						);
 					}
 				}
-				else
-				{
-					instructions.push(
-						[PushNull]
-					);
-				}
+//				else
+//				{
+//					instructions.push(
+//						[PushNull]
+//					);
+//				}
 				
 //				instructions.push(
 //					[CallProperty, proxyListenerType.getMethod("methodExecuted").qname, 5]

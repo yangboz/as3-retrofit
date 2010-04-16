@@ -26,12 +26,13 @@ package eu.powdermonkey.composure
 		
 		private function testMixin(mixinFactory:MixinFactory):void
 		{
-			var person:Person = mixinFactory.mush(Person, 'brian', '0');
+			var person:Person = mixinFactory.mush(Person, 'brian', 28, '0');
 			var type:XML = describeType(person)
 			trace(type)
 			
 			trace('person.id:', person.id)
 			trace('person.name:', person.name)
+			trace('person.age:', person.age)
 		}
 		
 //		private function testMock(mockRepository:MockRepository):void
