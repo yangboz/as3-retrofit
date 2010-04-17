@@ -5,5 +5,6 @@ package eu.powdermonkey.composure
 	public interface Moveable
 	{
 		function move(location:Point):void
+		function get location():Point
 	}
 }

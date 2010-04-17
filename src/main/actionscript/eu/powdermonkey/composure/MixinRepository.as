@@ -4,13 +4,16 @@ package eu.powdermonkey.composure
 	
 	public class MixinRepository extends ClassRepository
 	{
-		public function MixinRepository()
+		private var mixinGenerator:MixinGenerator = new MixinGenerator()
+		
+		public function prepare(base:Class, mixins:Object):PreperationSignals
 		{
+			return prepareClasses([base], mixinGenerator)
 		}
-
-		private function prepare(base:Class, mixins:Object):PreperationSignals
+		
+		public function create(cls:Class, args:Object=null):*
 		{
-			
+			return new Object()
 		}
 	}
 }

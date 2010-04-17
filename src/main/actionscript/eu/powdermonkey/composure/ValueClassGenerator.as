@@ -13,10 +13,8 @@ package eu.powdermonkey.composure
 	import org.flemit.reflection.PropertyInfo;
 	import org.flemit.reflection.Type;
 	
-	public class ValueClassGenerator implements Generator
+	public class ValueClassGenerator extends BaseGenerator implements Generator
 	{
-		public static const CREATE_METHOD : String = "__createInstance";
-		
 		public function generate(name:QualifiedName, interfaces:Array):DynamicClass
 		{
 			var superClass:Type = Type.getType(Object)
@@ -35,57 +33,21 @@ package eu.powdermonkey.composure
 			
 			for each(method in dynamicClass.getMethods())
 			{
-				trace('creating methods:', method.name)
 				dynamicClass.addMethodBody(method, generateMethod(dynamicClass, method, null, false, method.name, MethodType.METHOD));
 			}
 			
 			for each(property in dynamicClass.getProperties())
 			{
-				trace('creating properties:', property.name)
 				dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, null, false, property.name, MethodType.PROPERTY_GET));
-//				dynamicClass.addMethodBody(property.setMethod, generateMethod(dynamicClass, property.setMethod, null, false, property.name, MethodType.PROPERTY_SET));
 			}
 			
-			return dynamicClass;
-		}
-		
-		private function addInterfaceMembers(dynamicClass : DynamicClass) : void
-		{
-			var allInterfaces : Array = dynamicClass.getInterfaces();
-			
-			for each(var inter : Type in allInterfaces)
-			{
-				for each(var extendedInterface : Type in inter.getInterfaces())
-				{
-					if (allInterfaces.indexOf(extendedInterface) == -1)
-					{
-						allInterfaces.push(extendedInterface);
-					}
-				}
-				
-				for each(var method : MethodInfo in inter.getMethods())
-				{
-					if (dynamicClass.getMethod(method.name) == null)
-					{					
-						dynamicClass.addMethod(new MethodInfo(dynamicClass, method.name, null, method.visibility, method.isStatic, false, method.returnType, method.parameters));
-					}
-				}
-				
-				for each(var property:PropertyInfo in inter.getProperties())
-				{
-					if (dynamicClass.getProperty(property.name) == null)
-					{
-						dynamicClass.addProperty(new PropertyInfo(dynamicClass, property.name, null, property.visibility, property.isStatic, false, property.type, property.canRead, property.canWrite));
-					}
-				}
-			}
+			return dynamicClass
 		}
 		
 		private function createConstructor(dynamicClass:DynamicClass, interfaseType:Type):MethodInfo
 		{
-			var baseCtor : MethodInfo = dynamicClass.baseType.constructor;
-			
-			var params : Array = new Array().concat(baseCtor.parameters);
+			var baseCtor:MethodInfo = dynamicClass.baseType.constructor
+			var params:Array = new Array().concat(baseCtor.parameters)
 			
 			var properties:Array = interfaseType.getProperties()
 			var propertyInfo:PropertyInfo
@@ -96,67 +58,13 @@ package eu.powdermonkey.composure
 				params.push(new ParameterInfo(propertyInfo.name, propertyInfo.type, false))
 			}
 			
-			//return new MethodInfo(dynamicClass, dynamicClass.name, null, MemberVisibility.PUBLIC, false, 
-			return new MethodInfo(dynamicClass, "ctor", null, MemberVisibility.PUBLIC, false, false, 
-				Type.star, params);
-		}
-		
-		private function generateScriptInitialier(dynamicClass : DynamicClass) : DynamicMethod
-		{
-			var clsNamespaceSet:NamespaceSet = new NamespaceSet(
-				[new BCNamespace(dynamicClass.packageName, NamespaceKind.PACKAGE_NAMESPACE)]);
-			
-			with (Instructions)
-			{
-				if (dynamicClass.isInterface)
-				{
-					return new DynamicMethod(dynamicClass.scriptInitialiser, 3, 2, 1, 3, [
-						[GetLocal_0],
-						[PushScope],
-						[FindPropertyStrict, new MultipleNamespaceName(dynamicClass.name, clsNamespaceSet)], 
-						[PushNull],
-						[NewClass, dynamicClass],
-						[InitProperty, dynamicClass.qname],
-						[ReturnVoid]
-					]); 
-				}
-				else
-				{
-					// TODO: Support where base class is not Object
-					return new DynamicMethod(dynamicClass.scriptInitialiser, 3, 2, 1, 3, [
-						[GetLocal_0],
-						[PushScope],
-						//[GetScopeObject, 0],
-						[FindPropertyStrict, dynamicClass.multiNamespaceName], 
-						[GetLex, dynamicClass.baseType.qname],
-						[PushScope],
-						[GetLex, dynamicClass.baseType.qname],
-						[NewClass, dynamicClass],
-						[PopScope],
-						[InitProperty, dynamicClass.qname],
-						[ReturnVoid]
-					]);
-				}
-			}
-		}
-		
-		private function generateStaticInitialiser(dynamicClass:DynamicClass):DynamicMethod
-		{
-			with (Instructions)
-			{
-				return new DynamicMethod(dynamicClass.staticInitialiser, 2, 2, 3, 4, [
-					[GetLocal_0],
-					[PushScope],
-					[ReturnVoid]
-				]);
-			}
+			return new MethodInfo(dynamicClass, "ctor", null, MemberVisibility.PUBLIC, false, false, Type.star, params);
 		}
 		
 		private function generateInitialiser(dynamicClass:DynamicClass, interfaseType:Type):DynamicMethod
 		{
 			var baseCtor : MethodInfo = dynamicClass.baseType.constructor;
 			var argCount : uint = baseCtor.parameters.length;
-//			var namespaze:BCNamespace = new BCNamespace(dynamicClass.packageName, NamespaceKind.PACKAGE_NAMESPACE)
 			var namespaze:BCNamespace = new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE)
 			
 			with (Instructions)
@@ -203,48 +111,8 @@ package eu.powdermonkey.composure
 					[GetLocal_0],
 					[PushScope],
 					[GetLex, new QualifiedName(new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), name)],
+					[ReturnValue]
 				];
-				
-				// TODO: IsFinal?
-				if (baseMethod != null)
-				{
-					if (baseIsDelegate)
-					{
-						instructions.push(
-							[GetLex, baseMethod.qname]
-						);
-					}
-					else
-					{
-						instructions.push(
-							[GetLocal_0],
-							[GetSuper, baseMethod.qname]
-						);
-					}
-				}
-//				else
-//				{
-//					instructions.push(
-//						[PushNull]
-//					);
-//				}
-				
-//				instructions.push(
-//					[CallProperty, proxyListenerType.getMethod("methodExecuted").qname, 5]
-//				);
-				
-				if (method.returnType == Type.voidType) // void
-				{
-					instructions.push([ReturnVoid]);
-				}
-				else
-				{
-					instructions.push(
-						//[GetLex, method.returnType.qname],
-						//[AsTypeLate],
-						[ReturnValue]
-					);
-				}
 				
 				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);
 			}

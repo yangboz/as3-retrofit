@@ -6,8 +6,9 @@ package eu.powdermonkey.composure
 		{
 		}
 		
-		private var _room:Object
-	
+		private var _room:Room
+		public function get room():Room { return _room }
+		
 		public function enteredRoom(room:Room):void
 		{
 			_room = room

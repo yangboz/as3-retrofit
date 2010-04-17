@@ -1,6 +1,6 @@
 package eu.powdermonkey.composure
 {
-	public interface Room
+	public class Room
 	{
 		
 	}

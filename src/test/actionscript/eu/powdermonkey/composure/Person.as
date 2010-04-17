@@ -1,9 +1,6 @@
 package eu.powdermonkey.composure
 {
-	public interface Person
+	public interface Person extends RoomObject, Moveable
 	{
-		function get name():String
-		function get age():int
-		function get id():String
 	}
 }

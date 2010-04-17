@@ -1,38 +1,37 @@
 package eu.powdermonkey.composure
 {
+	import flash.geom.Point;
 	import flash.utils.describeType;
 	
 	public class Main
 	{
+		private var mixinRepo:MixinRepository = new MixinRepository()
+		
+		private var valueClassRepo:ValueClassRepository = new ValueClassRepository()
+		
 		public function Main()
 		{
-//			var mixinRepo:MixinRepository = new MixinRepository()
-//			mixinRepo.prepare(Person, {RoomObject:RoomObjectCls, Moveable:MoveableCls})
-			
-			var valueClassRepo:ValueClassRepository = new ValueClassRepository()
-			valueClassRepo.prepare([Person]).completed.add(function ():void {
-				testMixin(valueClassRepo)
-			})
-			
-//			var mixinFactory:MixinFactory = new MixinFactory()
-//			mixinFactory.prepare([Person]).addEventListener(
-//        		Event.COMPLETE, 
-//				function (event:Event):void {
-//					testMixin(mixinFactory)
-//				}
-//			);
+			mixinRepo.prepare(Person, {RoomObject:RoomObjectCls, Moveable:MoveableCls}).completed.add(testMixinClass)
+			valueClassRepo.prepare([ServerMessage]).completed.add(testValueClass)
 		}
 		
-		private function testMixin(valueClassRepo:ValueClassRepository):void
+		private function testMixinClass():void
 		{
-			trace('textMixin')			
-			var person:Person = valueClassRepo.create(Person, {name:'brian', age:28, id:'0'})
-			var type:XML = describeType(person)
+//			var person:Person = mixinRepo.create(Person)
+//			var room:Room = new Room()
+//			person.enteredRoom(room)
+//			person.move(new Point())
+		}
+		
+		private function testValueClass():void
+		{
+			var serverMessage:ServerMessage = valueClassRepo.create(ServerMessage, {data:'brian', timestamp:28, id:'0'})
+			var type:XML = describeType(serverMessage)
 			trace(type)
 			
-			trace('person.id:', person.id)
-			trace('person.name:', person.name)
-			trace('person.age:', person.age)
+			trace('serverMessage.id:', serverMessage.id)
+			trace('serverMessage.data:', serverMessage.data)
+			trace('serverMessage.timestamp:', serverMessage.timestamp)
 		}
 	}
 }
