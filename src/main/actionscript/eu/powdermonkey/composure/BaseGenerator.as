@@ -5,10 +5,6 @@ package eu.powdermonkey.composure
 	
 	public class BaseGenerator
 	{
-		public function BaseGenerator()
-		{
-		}
-		
 		protected function addInterfaceMembers(dynamicClass:DynamicClass):void
 		{
 			var allInterfaces:Array = dynamicClass.getInterfaces()
@@ -27,7 +23,9 @@ package eu.powdermonkey.composure
 				{
 					if (dynamicClass.getMethod(method.name) == null)
 					{					
-						dynamicClass.addMethod(new MethodInfo(dynamicClass, method.name, null, method.visibility, method.isStatic, false, method.returnType, method.parameters))
+						var classMethod:MethodInfo = new MethodInfo(dynamicClass, method.name, null, method.visibility, method.isStatic, false, method.returnType, method.parameters) 
+						dynamicClass.addMethod(classMethod)
+						dynamicClass.addMethodBody(classMethod, generateMethod(dynamicClass, classMethod, null, false, classMethod.name, MethodType.METHOD))
 					}
 				}
 				
@@ -35,9 +33,67 @@ package eu.powdermonkey.composure
 				{
 					if (dynamicClass.getProperty(property.name) == null)
 					{
-						dynamicClass.addProperty(new PropertyInfo(dynamicClass, property.name, null, property.visibility, property.isStatic, false, property.type, property.canRead, property.canWrite))
+						var classProperty:PropertyInfo = new PropertyInfo(dynamicClass, property.name, null, property.visibility, property.isStatic, false, property.type, property.canRead, property.canWrite)
+						dynamicClass.addProperty(classProperty)
+						dynamicClass.addMethodBody(classProperty.getMethod, generateMethod(dynamicClass, classProperty.getMethod, null, false, classProperty.name, MethodType.PROPERTY_GET))
 					}
 				}
+			}
+		}
+		
+		protected function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
+		{
+			var argCount : uint = method.parameters.length;
+
+			with (Instructions)
+			{
+				var instructions : Array = [
+					[GetLocal_0],
+					[PushScope],
+					[GetLocal_0],
+					[PushByte, methodType],
+					[PushString, name],
+					[GetLocal, argCount + 1], // 'arguments'					
+				];
+				
+				// TODO: IsFinal?
+				if (baseMethod != null)
+				{
+					if (baseIsDelegate)
+					{
+						instructions.push(
+							[GetLex, baseMethod.qname]
+						);
+					}
+					else
+					{
+						instructions.push(
+							[GetLocal_0],
+							[GetSuper, baseMethod.qname]
+						);
+					}
+				}
+				else
+				{
+					instructions.push(
+						[PushNull]
+					);
+				}
+				
+				if (method.returnType == Type.voidType) // void
+				{
+					instructions.push([ReturnVoid]);
+				}
+				else
+				{
+					instructions.push(
+						//[GetLex, method.returnType.qname],
+						//[AsTypeLate],
+						[ReturnValue]
+					);
+				}
+				
+				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);
 			}
 		}
 		

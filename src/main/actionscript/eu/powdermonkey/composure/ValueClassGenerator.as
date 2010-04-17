@@ -1,16 +1,7 @@
 package eu.powdermonkey.composure
 {
-	import org.flemit.bytecode.BCNamespace;
-	import org.flemit.bytecode.DynamicClass;
-	import org.flemit.bytecode.DynamicMethod;
-	import org.flemit.bytecode.Instructions;
-	import org.flemit.bytecode.NamespaceKind;
-	import org.flemit.bytecode.QualifiedName;
-	import org.flemit.reflection.MemberVisibility;
-	import org.flemit.reflection.MethodInfo;
-	import org.flemit.reflection.ParameterInfo;
-	import org.flemit.reflection.PropertyInfo;
-	import org.flemit.reflection.Type;
+	import org.flemit.bytecode.*;
+	import org.flemit.reflection.*;
 	
 	public class ValueClassGenerator extends BaseGenerator implements Generator
 	{
@@ -29,16 +20,6 @@ package eu.powdermonkey.composure
 			dynamicClass.addMethodBody(dynamicClass.scriptInitialiser, generateScriptInitialier(dynamicClass));
 			dynamicClass.addMethodBody(dynamicClass.staticInitialiser, generateStaticInitialiser(dynamicClass));
 			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, interfaces[0]));
-			
-			for each(method in dynamicClass.getMethods())
-			{
-				dynamicClass.addMethodBody(method, generateMethod(dynamicClass, method, null, false, method.name, MethodType.METHOD));
-			}
-			
-			for each(property in dynamicClass.getProperties())
-			{
-				dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, null, false, property.name, MethodType.PROPERTY_GET));
-			}
 			
 			var toStringMethod:MethodInfo = new MethodInfo(dynamicClass, 'toString', null, MemberVisibility.PUBLIC, false, false, Type.getType(String), [])
 			dynamicClass.addMethod(toStringMethod)
@@ -103,7 +84,7 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		private function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
+		override protected function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
 		{
 			var name:String = '_' + method.fullName.match(/(\w+)\/\w+$/)[1]
 			

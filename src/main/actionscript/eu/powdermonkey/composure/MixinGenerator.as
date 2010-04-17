@@ -21,16 +21,6 @@ package eu.powdermonkey.composure
 			dynamicClass.addMethodBody(dynamicClass.staticInitialiser, generateStaticInitialiser(dynamicClass))
 			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, interfaces[0]))
 			
-			for each(method in dynamicClass.getMethods())
-			{
-				dynamicClass.addMethodBody(method, generateMethod(dynamicClass, method, null, false, method.name, MethodType.METHOD))
-			}
-			
-			for each(property in dynamicClass.getProperties())
-			{
-				dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, null, false, property.name, MethodType.PROPERTY_GET))
-			}
-			
 			return dynamicClass; 
 		}
 		
@@ -75,24 +65,6 @@ package eu.powdermonkey.composure
 				var argumentBytes:int = properties.length * 5
 				
 				return new DynamicMethod(dynamicClass.constructor, 6 + argumentBytes, 3 + argumentBytes, 4, 5, instructions);
-			}
-		}
-		
-		private function generateMethod(dynamicClass:DynamicClass, method : MethodInfo, baseMethod : MethodInfo, baseIsDelegate : Boolean, name : String, methodType : uint) : DynamicMethod
-		{
-			var argCount : uint = method.parameters.length;
-			var name:String = '_' + method.fullName.match(/(\w+)\/\w+$/)[1]
-			
-			with (Instructions)
-			{
-				var instructions : Array = [
-					[GetLocal_0],
-					[PushScope],
-					[GetLex, new QualifiedName(new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), name)],
-					[ReturnValue]
-				];
-				
-				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);
 			}
 		}
 	}		
