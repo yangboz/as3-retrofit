@@ -27,9 +27,8 @@ package eu.powdermonkey.composure
 		{
 			trace('textMixin')			
 			var person:Person = valueClassRepo.create(Person, {name:'brian', age:28, id:'0'})
-//			var person:Person = valueClassRepo.create(Person, {name:'brian', age:28, id:'0'})
-//			var type:XML = describeType(person)
-//			trace(type)
+			var type:XML = describeType(person)
+			trace(type)
 			
 			trace('person.id:', person.id)
 			trace('person.name:', person.name)

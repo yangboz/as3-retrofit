@@ -2,6 +2,7 @@ package eu.powdermonkey.composure
 {
 	import flash.utils.getQualifiedClassName;
 	
+	import org.flemit.bytecode.DynamicClass;
 	import org.flemit.reflection.ParameterInfo;
 	import org.flemit.reflection.Type;
 	import org.flemit.util.ClassUtility;
@@ -26,8 +27,9 @@ package eu.powdermonkey.composure
 					+ getQualifiedClassName(cls) + " has not been prepared yet") 
 			}
 			
+			var dynamicClass:DynamicClass = dynamicClasses[cls]
 			var classType:Type = Type.getType(clazz)
-			var params:Array = classType.constructor.parameters
+			var params:Array = dynamicClass.constructor.parameters
 			var constructorRequiredArgCount:int = MethodUtil.getRequiredArgumentCount(classType.constructor)
 			
 			if (args.length < constructorRequiredArgCount || args.length > constructorRequiredArgCount)
@@ -37,26 +39,20 @@ package eu.powdermonkey.composure
 			
 			var argumentValues:Array = []
 			
-			for each(var argVal:* in args)
+			for (var i:int = 0; i < params.length; ++i)
 			{
-				argumentValues.push(argVal)
+				var param:ParameterInfo = params[i]
+				var paramName:String = param.name
+				
+				if (args.hasOwnProperty(paramName) )
+				{
+					argumentValues.push(args[paramName])
+				}
+				else if (param.optional == false)
+				{
+					throw new ArgumentError('The argument map did not contain an entry for "'+paramName+'" and this parameter is not optional')
+				}
 			}
-			
-//			for (var i:int = 0; i < params.length; ++i)
-//			{
-//				var param:ParameterInfo = params[i]
-//				var paramName:String = param.name
-//				trace(paramName)
-//				
-//				if (args.hasOwnProperty(paramName) )
-//				{
-//					argumentValues.push(args[paramName])
-//				}
-//				else if (param.optional == false)
-//				{
-//					throw new ArgumentError('The argument map did not contain an entry for "'+paramName+'" and this parameter is not optional')
-//				}
-//			}
 			
 			return ClassUtility.createClass(clazz, argumentValues) 
 		}

@@ -35,11 +35,13 @@ package eu.powdermonkey.composure
 			
 			for each(method in dynamicClass.getMethods())
 			{
+				trace('creating methods:', method.name)
 				dynamicClass.addMethodBody(method, generateMethod(dynamicClass, method, null, false, method.name, MethodType.METHOD));
 			}
 			
 			for each(property in dynamicClass.getProperties())
 			{
+				trace('creating properties:', property.name)
 				dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, null, false, property.name, MethodType.PROPERTY_GET));
 //				dynamicClass.addMethodBody(property.setMethod, generateMethod(dynamicClass, property.setMethod, null, false, property.name, MethodType.PROPERTY_SET));
 			}

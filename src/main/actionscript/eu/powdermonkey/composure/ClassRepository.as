@@ -35,6 +35,8 @@ package eu.powdermonkey.composure
 	{
 		protected var classes:Dictionary = new Dictionary()
 		
+		protected var dynamicClasses:Dictionary = new Dictionary()
+		
 		protected var loaders:Array = []
 		
 		public function ClassRepository()
@@ -53,7 +55,7 @@ package eu.powdermonkey.composure
 		 */
 		protected function validateClass(cls:Class, args:Array):Object
 		{
-			var clazz:Class = classes[cls]
+			var clazz:Class = classes[cls].clazz
 			
 			if (clazz == null)
 			{
@@ -77,7 +79,6 @@ package eu.powdermonkey.composure
 		{
 			applicationDomain = applicationDomain || new ApplicationDomain(ApplicationDomain.currentDomain);
 			
-			var dynamicClasses:Array = new Array()
 			var layoutBuilder:IByteCodeLayoutBuilder = new ByteCodeLayoutBuilder()
 			var generatedNames:Dictionary = new Dictionary()
 			
@@ -98,6 +99,7 @@ package eu.powdermonkey.composure
 				var qname:QualifiedName = generateQName(type)
 				generatedNames[cls] = qname
 				var dynamicClass:DynamicClass = generator.generate(qname, [type])
+				dynamicClasses[cls] = dynamicClass
 				layoutBuilder.registerType(dynamicClass)
 			}
 			
@@ -183,5 +185,22 @@ package eu.powdermonkey.composure
 		{
 			return (classes[cls] == null);
 		}
+	}
+}
+	import org.flemit.bytecode.DynamicClass;
+	
+
+class ClassPreparationData
+{
+	private var _clazz:Class
+	public function clazz():Class { return _clazz }
+	
+	private var _bytecodeData:DynamicClass
+	public function bytecodeData():DynamicClass { return _bytecodeData }
+	
+	public function ClassPreparationData(clazz:Class, bytecodeData:DynamicClass)
+	{
+		_clazz = clazz
+		_bytecodeData = bytecodeData
 	}
 }
