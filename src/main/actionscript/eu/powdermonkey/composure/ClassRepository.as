@@ -75,7 +75,7 @@ package eu.powdermonkey.composure
 			return ClassUtility.createClass(clazz, args)
 		}
 		
-		protected function prepareClasses(classesToPrepare:Array, generator:Generator, applicationDomain:ApplicationDomain = null):PreperationSignals
+		protected function prepareClasses(classesToPrepare:Array, generator:Function, applicationDomain:ApplicationDomain = null):PreperationSignals
 		{
 			applicationDomain = applicationDomain || new ApplicationDomain(ApplicationDomain.currentDomain);
 			
@@ -98,7 +98,7 @@ package eu.powdermonkey.composure
 				
 				var qname:QualifiedName = generateQName(type)
 				generatedNames[cls] = qname
-				var dynamicClass:DynamicClass = generator.generate(qname, [type])
+				var dynamicClass:DynamicClass = generator(qname, [type])
 				dynamicClasses[cls] = dynamicClass
 				layoutBuilder.registerType(dynamicClass)
 			}

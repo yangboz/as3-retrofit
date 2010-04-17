@@ -14,7 +14,7 @@ package eu.powdermonkey.composure
 		
 		public function prepare(classes:Array):PreperationSignals
 		{
-			return prepareClasses(classes, valueClassGenerator)
+			return prepareClasses(classes, valueClassGenerator.generate)
 		}
 		
 		public function create(cls:Class, args:Object):*

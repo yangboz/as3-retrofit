@@ -17,10 +17,13 @@ package eu.powdermonkey.composure
 		
 		private function testMixinClass():void
 		{
-//			var person:Person = mixinRepo.create(Person)
-//			var room:Room = new Room()
-//			person.enteredRoom(room)
-//			person.move(new Point())
+			var person:Person = mixinRepo.create(Person)
+			trace('person:', person)
+			var room:Room = new Room()
+			person.enteredRoom(room)
+			trace('person.room:', person.room)
+			person.move(new Point())
+			trace('person.location:', person.location)
 		}
 		
 		private function testValueClass():void

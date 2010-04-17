@@ -3,7 +3,7 @@ package eu.powdermonkey.composure
 	import org.flemit.bytecode.*;
 	import org.flemit.reflection.*;
 	
-	public class ValueClassGenerator extends BaseGenerator implements Generator
+	public class ValueClassGenerator extends BaseGenerator
 	{
 		public function generate(name:QualifiedName, interfaces:Array):DynamicClass
 		{
@@ -28,12 +28,12 @@ package eu.powdermonkey.composure
 			return dynamicClass
 		}
 		
-		private function createConstructor(dynamicClass:DynamicClass, interfaseType:Type):MethodInfo
+		private function createConstructor(dynamicClass:DynamicClass, interfaceType:Type):MethodInfo
 		{
 			var baseCtor:MethodInfo = dynamicClass.baseType.constructor
 			var params:Array = new Array().concat(baseCtor.parameters)
 			
-			var properties:Array = interfaseType.getProperties()
+			var properties:Array = interfaceType.getProperties()
 			var propertyInfo:PropertyInfo
 			
 			for (var i:uint=0; i<properties.length; i++) 
