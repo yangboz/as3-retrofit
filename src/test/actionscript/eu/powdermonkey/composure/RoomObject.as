@@ -1,16 +1,7 @@
 package eu.powdermonkey.composure
 {
-	public class RoomObject
+	public interface RoomObject
 	{
-		public function RoomObject()
-		{
-		}
-		
-		private var _room:Object
-	
-		public function enteredRoom(room:Object):void
-		{
-			_room = room
-		}
+		function enteredRoom(room:Room):void
 	}
 }

@@ -4,7 +4,6 @@ package eu.powdermonkey.composure
 	
 	public class ComposeTwoObjects
 	{
-		
 		[Before]
 		public function setup():void
 		{
@@ -20,14 +19,14 @@ package eu.powdermonkey.composure
 		[Test]
 		public function compose():void
 		{
-			injectMethods(User, new RoomObject())
+			injectMethods(User, new RoomObjectCls())
 			
 			var user:Object = new User()
 			trace(user.enteredRoom({id:"room"}))
 			var userType:XML = describeType(user)
 			trace(userType)
 			
-			var roomObjectType:XML = describeType(RoomObject)
+			var roomObjectType:XML = describeType(RoomObjectCls)
 //			trace(roomObjectType)
 		}
 		

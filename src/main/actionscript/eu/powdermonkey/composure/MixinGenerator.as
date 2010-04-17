@@ -206,10 +206,6 @@ package eu.powdermonkey.composure
 					[GetLocal_0],
 					[PushScope],
 					[GetLex, new QualifiedName(new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), name)],
-//					[GetLocal_0],
-//					[PushByte, methodType],
-//					[PushString, name],
-//					[GetLocal, argCount + 1], // 'arguments'					
 				];
 				
 				// TODO: IsFinal?
