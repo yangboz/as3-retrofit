@@ -32,6 +32,7 @@ package eu.powdermonkey.composure
 			trace('serverMessage.id:', serverMessage.id)
 			trace('serverMessage.data:', serverMessage.data)
 			trace('serverMessage.timestamp:', serverMessage.timestamp)
+			trace('serverMessage.toString:', serverMessage)
 		}
 	}
 }

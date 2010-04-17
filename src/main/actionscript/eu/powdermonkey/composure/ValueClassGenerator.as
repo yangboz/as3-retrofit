@@ -5,7 +5,6 @@ package eu.powdermonkey.composure
 	import org.flemit.bytecode.DynamicMethod;
 	import org.flemit.bytecode.Instructions;
 	import org.flemit.bytecode.NamespaceKind;
-	import org.flemit.bytecode.NamespaceSet;
 	import org.flemit.bytecode.QualifiedName;
 	import org.flemit.reflection.MemberVisibility;
 	import org.flemit.reflection.MethodInfo;
@@ -40,6 +39,10 @@ package eu.powdermonkey.composure
 			{
 				dynamicClass.addMethodBody(property.getMethod, generateMethod(dynamicClass, property.getMethod, null, false, property.name, MethodType.PROPERTY_GET));
 			}
+			
+			var toStringMethod:MethodInfo = new MethodInfo(dynamicClass, 'toString', null, MemberVisibility.PUBLIC, false, false, Type.getType(String), [])
+			dynamicClass.addMethod(toStringMethod)
+			dynamicClass.addMethodBody(toStringMethod, generateToString(dynamicClass, toStringMethod))
 			
 			return dynamicClass
 		}
@@ -77,7 +80,7 @@ package eu.powdermonkey.composure
 					[ConstructSuper, argCount]
 				];
 				
-				var properties:Array = interfaseType.getProperties()
+				var properties:Array = dynamicClass.constructor.parameters
 				var propertyInfo:PropertyInfo
 				var qname:QualifiedName
 				
@@ -100,9 +103,8 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		private function generateMethod(dynamicClass:DynamicClass, method : MethodInfo, baseMethod : MethodInfo, baseIsDelegate : Boolean, name : String, methodType : uint) : DynamicMethod
+		private function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
 		{
-			var argCount : uint = method.parameters.length;
 			var name:String = '_' + method.fullName.match(/(\w+)\/\w+$/)[1]
 			
 			with (Instructions)
@@ -112,9 +114,45 @@ package eu.powdermonkey.composure
 					[PushScope],
 					[GetLex, new QualifiedName(new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), name)],
 					[ReturnValue]
-				];
+				]
 				
-				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);
+				return new DynamicMethod(method, 7, 2, 4, 5, instructions)
+			}
+		}
+		
+		private function generateToString(dynamicClass:DynamicClass, method:MethodInfo):DynamicMethod
+		{
+			var namespaze:BCNamespace = new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE)
+			
+			with(Instructions)
+			{
+				var instructions:Array = [
+					[GetLocal_0],
+					[PushScope],
+					[PushString, '['+dynamicClass.getInterfaces()[0].name]
+				]
+				
+				var properties:Array = dynamicClass.constructor.parameters
+				var propertyInfo:PropertyInfo
+				var qname:QualifiedName
+				
+				for (var i:uint=0; i<properties.length; i++) 
+				{
+					propertyInfo = properties[i]
+					qname = new QualifiedName(namespaze, '_' +propertyInfo.name) 
+					instructions.push([PushString, ' '+propertyInfo.name+':'])
+					instructions.push([Add])
+					instructions.push([GetLex, qname])
+					instructions.push([Add])
+				} 
+				
+				instructions.push(
+					[PushString, ']'],
+					[Add],
+					[ReturnValue]
+				)
+				
+				return new DynamicMethod(method, 7, 2, 4, 5, instructions)
 			}
 		}
 	}
