@@ -1,4 +1,4 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey.retrofit
 {
 	import org.osflash.signals.ISignal;
 	import org.osflash.signals.Signal;

@@ -1,4 +1,4 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey.retrofit
 {
 	public class ValueObjectFromInterface
 	{

@@ -1,4 +1,4 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey.
 {
 	import flash.utils.describeType;
 	

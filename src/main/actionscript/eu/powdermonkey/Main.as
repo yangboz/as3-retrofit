@@ -1,6 +1,7 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey
 {
-	import eu.powdermonkey.*;
+	import eu.powdermonkey.retrofit.MixinRepository;
+	import eu.powdermonkey.retrofit.ValueClassRepository;
 	
 	import flash.geom.Point;
 	import flash.utils.describeType;

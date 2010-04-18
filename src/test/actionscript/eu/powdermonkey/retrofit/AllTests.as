@@ -1,4 +1,4 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey.retrofit
 {
 	[Suite]
 	[RunWith("org.flexunit.runners.Suite")]

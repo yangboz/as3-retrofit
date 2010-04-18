@@ -1,4 +1,4 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey.retrofit
 {
 	import flash.errors.IllegalOperationError;
 	import flash.utils.Dictionary;

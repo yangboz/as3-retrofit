@@ -1,4 +1,4 @@
-package eu.powdermonkey.composure
+package eu.powdermonkey.retrofit
 {
 	import org.flemit.bytecode.*;
 	import org.flemit.reflection.*;
