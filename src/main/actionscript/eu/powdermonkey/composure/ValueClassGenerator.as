@@ -84,7 +84,7 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		override protected function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
+		override protected function generateMethod(type:Type, dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
 		{
 			var name:String = '_' + method.fullName.match(/(\w+)\/\w+$/)[1]
 			

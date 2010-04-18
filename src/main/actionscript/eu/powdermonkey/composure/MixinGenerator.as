@@ -99,10 +99,59 @@ package eu.powdermonkey.composure
 			return new QualifiedName(namespaze, '_' +interfaceType.fullName.replace(/[\.:]/g, '_'))
 		}
 		
-		override protected function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
+		override protected function generateMethod(type:Type, dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
 		{
-			trace('generateMethod:', method.fullName, methodType)
-			return super.generateMethod(dynamicClass, method, baseMethod, baseIsDelegate, name, methodType)
+			trace('generateMethod:', dynamicClass.qname.ns.name, method.name)
+			var argCount : uint = method.parameters.length;
+//			var proxyField : FieldInfo = dynamicClass.getField(PROXY_FIELD_NAME);
+
+			var namespaze:BCNamespace = new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE)
+			var proxyPropertyName:QualifiedName = buildProxyPropName(namespaze, type)
+			
+			with (Instructions)
+			{
+				var instructions:Array = [
+					[GetLocal_0],
+					[PushScope]
+				];
+				
+				if (methodType == MethodType.METHOD)
+				{
+					var methodQName:QualifiedName = new QualifiedName(
+						new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), 
+						method.name
+					)
+					
+					instructions.push([GetLex, proxyPropertyName])
+					instructions.push([GetLocal, 1])
+					instructions.push([CallPropVoid, methodQName, 1])
+				}
+				else if (methodType == MethodType.PROPERTY_GET)
+				{
+					var methodName:String = method.fullName.match(/(\w+)\/\w+$/)[1]
+					var methodQName:QualifiedName = new QualifiedName(
+						new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), 
+						methodName
+					) 
+					instructions.push([GetLex, proxyPropertyName])
+					instructions.push([GetProperty, methodQName])
+				}
+				else if (methodType == MethodType.PROPERTY_SET)
+				{
+					
+				}
+				
+				if (method.returnType == Type.voidType) // void
+				{
+					instructions.push([ReturnVoid]);
+				}
+				else
+				{
+					instructions.push([ReturnValue]);
+				}
+				
+				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);
+			}
 		}
 	}		
 }

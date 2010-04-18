@@ -25,7 +25,7 @@ package eu.powdermonkey.composure
 					{					
 						var classMethod:MethodInfo = new MethodInfo(dynamicClass, method.name, null, method.visibility, method.isStatic, false, method.returnType, method.parameters) 
 						dynamicClass.addMethod(classMethod)
-						dynamicClass.addMethodBody(classMethod, generateMethod(dynamicClass, classMethod, null, false, classMethod.name, MethodType.METHOD))
+						dynamicClass.addMethodBody(classMethod, generateMethod(inter, dynamicClass, classMethod, null, false, classMethod.name, MethodType.METHOD))
 					}
 				}
 				
@@ -35,13 +35,13 @@ package eu.powdermonkey.composure
 					{
 						var classProperty:PropertyInfo = new PropertyInfo(dynamicClass, property.name, null, property.visibility, property.isStatic, false, property.type, property.canRead, property.canWrite)
 						dynamicClass.addProperty(classProperty)
-						dynamicClass.addMethodBody(classProperty.getMethod, generateMethod(dynamicClass, classProperty.getMethod, null, false, classProperty.name, MethodType.PROPERTY_GET))
+						dynamicClass.addMethodBody(classProperty.getMethod, generateMethod(inter, dynamicClass, classProperty.getMethod, null, false, classProperty.name, MethodType.PROPERTY_GET))
 					}
 				}
 			}
 		}
 		
-		protected function generateMethod(dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
+		protected function generateMethod(type:Type, dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
 		{
 			var argCount : uint = method.parameters.length;
 

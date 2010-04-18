@@ -30,8 +30,7 @@ package eu.powdermonkey.composure
 		{
 			var serverMessage:ServerMessage = valueClassRepo.create(ServerMessage, {data:'brian', timestamp:28, id:'0'})
 			var type:XML = describeType(serverMessage)
-			trace(type)
-			
+//			trace(type)
 			trace('serverMessage.id:', serverMessage.id)
 			trace('serverMessage.data:', serverMessage.data)
 			trace('serverMessage.timestamp:', serverMessage.timestamp)
