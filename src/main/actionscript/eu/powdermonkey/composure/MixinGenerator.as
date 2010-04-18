@@ -7,25 +7,24 @@ package eu.powdermonkey.composure
 	
 	public class MixinGenerator extends BaseGenerator
 	{
-		public function generate(name:QualifiedName, types:Array, mixins:Object):DynamicClass
+		public function generate(name:QualifiedName, base:Type, mixins:Dictionary):DynamicClass
 		{
 			var superClass:Type = Type.getType(Object)
 			
-			var baseType:Type = types[0]
-			var interfaces:Array = [].concat(baseType).concat(baseType.getInterfaces())
-			var mixinClasses:Dictionary = new Dictionary()
-			
-			for each (var interfaceType:Type in interfaces)
-			{
-				if (mixins.hasOwnProperty(interfaceType.name))
-				{
-					mixinClasses[interfaceType] = mixins[interfaceType.name]
-				}
-				else if (mixins.hasOwnProperty(interfaceType.fullName))
-				{
-					mixinClasses[interfaceType] = mixins[interfaceType.fullName]
-				}
-			}
+			var interfaces:Array = [].concat(base).concat(base.getInterfaces())
+//			var mixinClasses:Dictionary = new Dictionary()
+//			
+//			for each (var interfaceType:Type in interfaces)
+//			{
+//				if (mixins.hasOwnProperty(interfaceType.classDefinition))
+//				{
+//					mixinClasses[interfaceType] = mixins[interfaceType.name]
+//				}
+//				else if (mixins.hasOwnProperty(interfaceType.fullName))
+//				{
+//					mixinClasses[interfaceType] = mixins[interfaceType.fullName]
+//				}
+//			}
 			
 			var dynamicClass:DynamicClass = new DynamicClass(name, superClass, interfaces)
 			
@@ -34,16 +33,16 @@ package eu.powdermonkey.composure
 			var method:MethodInfo
 			var property:PropertyInfo
 			
-			dynamicClass.constructor = createConstructor(dynamicClass, interfaces[0])
+			dynamicClass.constructor = createConstructor(dynamicClass)
 			
 			dynamicClass.addMethodBody(dynamicClass.scriptInitialiser, generateScriptInitialier(dynamicClass))
 			dynamicClass.addMethodBody(dynamicClass.staticInitialiser, generateStaticInitialiser(dynamicClass))
-			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, mixinClasses))
+			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, mixins))
 			
 			return dynamicClass; 
 		}
 		
-		private function createConstructor(dynamicClass:DynamicClass, interfaseType:Type):MethodInfo
+		private function createConstructor(dynamicClass:DynamicClass):MethodInfo
 		{
 			return new MethodInfo(dynamicClass, "ctor", null, MemberVisibility.PUBLIC, false, false, Type.star, [])
 		}
@@ -101,10 +100,7 @@ package eu.powdermonkey.composure
 		
 		override protected function generateMethod(type:Type, dynamicClass:DynamicClass, method:MethodInfo, baseMethod:MethodInfo, baseIsDelegate:Boolean, name:String, methodType:uint):DynamicMethod
 		{
-			trace('generateMethod:', dynamicClass.qname.ns.name, method.name)
-			var argCount : uint = method.parameters.length;
-//			var proxyField : FieldInfo = dynamicClass.getField(PROXY_FIELD_NAME);
-
+			var argCount:uint = method.parameters.length;
 			var namespaze:BCNamespace = new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE)
 			var proxyPropertyName:QualifiedName = buildProxyPropName(namespaze, type)
 			
@@ -112,42 +108,48 @@ package eu.powdermonkey.composure
 			{
 				var instructions:Array = [
 					[GetLocal_0],
-					[PushScope]
+					[PushScope],
 				];
 				
 				if (methodType == MethodType.METHOD)
 				{
-					var methodQName:QualifiedName = new QualifiedName(
-						new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), 
-						method.name
-					)
-					
 					instructions.push([GetLex, proxyPropertyName])
-					instructions.push([GetLocal, 1])
-					instructions.push([CallPropVoid, methodQName, 1])
+					
+					for (var i:uint=0; i < argCount; ++i)
+					{
+						instructions.push([GetLocal, i+1])
+					}
+					
+//					var methodQName:QualifiedName = new QualifiedName(namespaze, method.name)
+					if (method.returnType == Type.voidType)
+					{
+						instructions.push([CallPropVoid, method.qname, argCount])
+					}
+					else
+					{
+						instructions.push([CallProperty, method.qname, argCount])
+					}
 				}
-				else if (methodType == MethodType.PROPERTY_GET)
+				else if (methodType == MethodType.PROPERTY_GET || methodType == MethodType.PROPERTY_SET)
 				{
 					var methodName:String = method.fullName.match(/(\w+)\/\w+$/)[1]
-					var methodQName:QualifiedName = new QualifiedName(
-						new BCNamespace('', NamespaceKind.PACKAGE_NAMESPACE), 
-						methodName
-					) 
+					var methodQName:QualifiedName = new QualifiedName(namespaze, methodName) 
 					instructions.push([GetLex, proxyPropertyName])
 					instructions.push([GetProperty, methodQName])
-				}
-				else if (methodType == MethodType.PROPERTY_SET)
-				{
 					
+					if (methodType == MethodType.PROPERTY_SET)
+					{
+						instructions.push([Pop])
+					}
 				}
 				
 				if (method.returnType == Type.voidType) // void
 				{
-					instructions.push([ReturnVoid]);
+					instructions.push([ReturnVoid])
 				}
 				else
 				{
-					instructions.push([ReturnValue]);
+					instructions.push([ReturnValue])
 				}
 				
 				return new DynamicMethod(method, 7 + argCount, argCount + 2, 4, 5, instructions);

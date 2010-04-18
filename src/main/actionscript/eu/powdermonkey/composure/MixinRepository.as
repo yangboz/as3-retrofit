@@ -1,5 +1,7 @@
 package eu.powdermonkey.composure
 {
+	import flash.errors.IllegalOperationError;
+	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 	
 	import org.flemit.bytecode.DynamicClass;
@@ -12,13 +14,66 @@ package eu.powdermonkey.composure
 	{
 		private var mixinGenerator:MixinGenerator = new MixinGenerator()
 		
-		public function prepare(base:Class, mixins:Object):PreperationSignals
+		protected var mixinPairs:Dictionary = new Dictionary()
+		
+		protected var bases:Dictionary = new Dictionary()
+		
+		public function defineMixin(interfaze:Class, clazz:Class):void
 		{
-			var baseType:Type = Type.getType(base)
-			var interfaces:Array = baseType.getInterfaces()
-			return prepareClasses([base], function (name:QualifiedName, types:Array):DynamicClass {
-				return mixinGenerator.generate(name, types, mixins)
-			})
+			if (interfaze in mixinPairs)
+			{
+				throw ArgumentError(interfaze+' is already defined, you can supply an override during preparation of the base')
+			}
+			
+			mixinPairs[interfaze] = clazz
+		}
+		
+		public function defineBase(base:Class, mixins:Object=null):void
+		{
+			if (base in bases)
+			{
+				throw ArgumentError(base+' is already defined')
+			}
+			
+			mixins = mixins || {}
+			bases[base] = mixins
+		}
+		
+		public function prepare():PreperationSignals
+		{
+			var baseClasses:Array = []
+			
+			for (var baseClass:* in bases)
+			{
+				baseClasses.push(baseClass)
+			}
+			
+			if (baseClasses.length == 0)
+			{
+				throw new IllegalOperationError('No base classes were defined. Use defineBase()')
+			}
+			
+			return prepareClasses(baseClasses, createDynClass)
+			
+			function createDynClass(name:QualifiedName, base:Type):DynamicClass
+			{
+				var interfaces:Array = base.getInterfaces()
+				var mixins:Dictionary = new Dictionary()
+				
+				for each (var interfaze:Type in interfaces)
+				{
+					if (interfaze.classDefinition in mixinPairs)
+					{
+						mixins[interfaze] = mixinPairs[interfaze.classDefinition]
+					}
+					else
+					{
+						throw new Error('interface '+interfaze+' defined on '+base+'has not being defined') 
+					}
+				}
+				
+				return mixinGenerator.generate(name, base, mixins)
+			}
 		}
 		
 		public function create(cls:Class, args:Object=null):*

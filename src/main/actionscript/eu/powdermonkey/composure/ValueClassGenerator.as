@@ -5,21 +5,21 @@ package eu.powdermonkey.composure
 	
 	public class ValueClassGenerator extends BaseGenerator
 	{
-		public function generate(name:QualifiedName, interfaces:Array):DynamicClass
+		public function generate(name:QualifiedName, type:Type):DynamicClass
 		{
 			var superClass:Type = Type.getType(Object)
-			var dynamicClass:DynamicClass = new DynamicClass(name, superClass, interfaces)
+			var dynamicClass:DynamicClass = new DynamicClass(name, superClass, [type])
 			
 			addInterfaceMembers(dynamicClass)
 			
 			var method:MethodInfo
 			var property:PropertyInfo
 			
-			dynamicClass.constructor = createConstructor(dynamicClass, interfaces[0])
+			dynamicClass.constructor = createConstructor(dynamicClass, type)
 			
 			dynamicClass.addMethodBody(dynamicClass.scriptInitialiser, generateScriptInitialier(dynamicClass));
 			dynamicClass.addMethodBody(dynamicClass.staticInitialiser, generateStaticInitialiser(dynamicClass));
-			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, interfaces[0]));
+			dynamicClass.addMethodBody(dynamicClass.constructor, generateInitialiser(dynamicClass, type));
 			
 			var toStringMethod:MethodInfo = new MethodInfo(dynamicClass, 'toString', null, MemberVisibility.PUBLIC, false, false, Type.getType(String), [])
 			dynamicClass.addMethod(toStringMethod)

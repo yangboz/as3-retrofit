@@ -35,7 +35,16 @@ package eu.powdermonkey.composure
 					{
 						var classProperty:PropertyInfo = new PropertyInfo(dynamicClass, property.name, null, property.visibility, property.isStatic, false, property.type, property.canRead, property.canWrite)
 						dynamicClass.addProperty(classProperty)
-						dynamicClass.addMethodBody(classProperty.getMethod, generateMethod(inter, dynamicClass, classProperty.getMethod, null, false, classProperty.name, MethodType.PROPERTY_GET))
+						
+						if (property.canRead)
+						{
+							dynamicClass.addMethodBody(classProperty.getMethod, generateMethod(inter, dynamicClass, classProperty.getMethod, null, false, classProperty.name, MethodType.PROPERTY_GET))
+						}
+						
+						if (property.canWrite)
+						{
+							dynamicClass.addMethodBody(classProperty.setMethod, generateMethod(inter, dynamicClass, classProperty.setMethod, null, false, classProperty.name, MethodType.PROPERTY_SET))
+						}
 					}
 				}
 			}

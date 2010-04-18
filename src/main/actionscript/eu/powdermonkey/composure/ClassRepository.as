@@ -39,10 +39,6 @@ package eu.powdermonkey.composure
 		
 		protected var loaders:Array = []
 		
-		public function ClassRepository()
-		{
-		}
-		
 		/**
 		 * Creates an instance of a proxy. The proxy must already have been 
 		 * prepared by calling prepare.
@@ -85,20 +81,9 @@ package eu.powdermonkey.composure
 			for each(var cls:Class in classesToPrepare)
 			{
 				var type:Type = Type.getType(cls);
-				
-				if (type.isGeneric || type.isGenericTypeDefinition)
-				{
-					throw new IllegalOperationError("Generic types (Vector) are not supported. (feature request #2599097)");
-				}
-				
-				if (type.qname.ns.kind != NamespaceKind.PACKAGE_NAMESPACE)
-				{
-					throw new IllegalOperationError("Private (package) classes are not supported. (feature request #2549289)");
-				}
-				
 				var qname:QualifiedName = generateQName(type)
+				var dynamicClass:DynamicClass = generator(qname, type)
 				generatedNames[cls] = qname
-				var dynamicClass:DynamicClass = generator(qname, [type])
 				dynamicClasses[cls] = dynamicClass
 				layoutBuilder.registerType(dynamicClass)
 			}
@@ -133,6 +118,19 @@ package eu.powdermonkey.composure
 				}
 				
 				preperationSignals.completed.dispatch()
+			}
+		}
+		
+		protected function basicValidation(type:Type):void
+		{
+			if (type.isGeneric || type.isGenericTypeDefinition)
+			{
+				throw new IllegalOperationError("Generic types (Vector) are not supported. (feature request #2599097)")
+			}
+			
+			if (type.qname.ns.kind != NamespaceKind.PACKAGE_NAMESPACE)
+			{
+				throw new IllegalOperationError("Private (package) classes are not supported. (feature request #2549289)")
 			}
 		}
 		
@@ -172,7 +170,7 @@ package eu.powdermonkey.composure
 			}
 		}
 		
-		private function generateQName(type:Type):QualifiedName
+		protected function generateQName(type:Type):QualifiedName
 		{
 			var ns:BCNamespace = (type.qname.ns.kind != NamespaceKind.PACKAGE_NAMESPACE)
 				? type.qname.ns
@@ -185,22 +183,5 @@ package eu.powdermonkey.composure
 		{
 			return (classes[cls] == null);
 		}
-	}
-}
-	import org.flemit.bytecode.DynamicClass;
-	
-
-class ClassPreparationData
-{
-	private var _clazz:Class
-	public function clazz():Class { return _clazz }
-	
-	private var _bytecodeData:DynamicClass
-	public function bytecodeData():DynamicClass { return _bytecodeData }
-	
-	public function ClassPreparationData(clazz:Class, bytecodeData:DynamicClass)
-	{
-		_clazz = clazz
-		_bytecodeData = bytecodeData
 	}
 }
